@@ -18,13 +18,13 @@ Other figures in the manuscript (Figs 1–3, 5A, 6, all supplementary figures) c
 
 | Data | Location |
 |---|---|
-| Raw RNA-seq FASTQs | NCBI GEO accession **`GSE-TBD`** (will be activated upon submission) |
+| Raw RNA-seq FASTQs | NCBI GEO accession (_will be activated upon submission_) |
 | Salmon gene-level counts (the input to DESeq2) | `nf-core_results/salmon_counts/salmon.merged.gene_counts.tsv` |
 | Sample metadata (`mouseID` ↔ `altID` ↔ `genotype`) | `20250905_Bulk seq IDs.xlsx` |
 | Luminex cytokine measurements | `Raw Data Johnson_MacLean Cytokine Results 2023 0612.csv` |
 | Differential expression result table | `analysis/20250909-DEGs.csv` |
-| Lipidomics & metabolomics scripts and data | Held by a co-author and will be archived separately. |
-| Immunofluorescence / HALO and qPCR data (Figs 1–3, 5A, 6) | Source-data tables of the published article; statistics performed in GraphPad Prism (see Methods §2.11). |
+| Lipidomics & metabolomics scripts and data | _PENDING_ |
+| Immunofluorescence / HALO and qPCR data (Figs 1–3, 5A, 6) | Source-data tables of the published article; statistics performed in GraphPad Prism (see Methods). |
 
 ## Reproducing the figures
 
@@ -74,14 +74,11 @@ R 4.5.x with the following packages (versions current at time of analysis):
 
 ## Caveats
 
-- Sample `M2` is excluded from all DE analyses (QC outlier).
-- Cytokine genotype comparisons are reported both raw (Mann–Whitney p.overall) and BH-adjusted across the 15 (cytokine × condition) tests. The manuscript's blanket "no significant differences" statement refers to the BH-adjusted view.
+- **Sample `M2` is excluded from all differential-expression analyses.** as E2 expression is incompatible with a microglia-specific switch and is most likely a sample-tracking / genotyping error or off-target Cre recombination. 
 
-## License
 
-Code released under the MIT License. The processed data files in this repository are released under [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 ## Contact
 
 - Lance A. Johnson — corresponding author, johnson.lance@uky.edu
-- Jose M. Arbones-Mainar — analysis lead for this repository
+
