@@ -1,4 +1,5 @@
-# Nolt et al. — analysis code and processed data
+# Nolt et al.  
+# Analysis code and processed data
 
 Analysis scripts, processed data, and rendered Quarto reports backing the bulk-RNA-seq, GSEA, and Luminex cytokine results in:
 
@@ -30,30 +31,6 @@ Other figures in the manuscript (Figs 1–3, 5A, 6, all supplementary figures) c
 
 All notebooks are self-contained Quarto documents (`embed-resources: true`) and render to a single HTML file alongside the `.qmd`.
 
-### Figure 4B — DESeq2 differential expression
-```bash
-quarto render analysis/20250909-switch_lps.qmd
-```
-- **Inputs**: `nf-core_results/salmon_counts/salmon.merged.gene_counts.tsv`, `20250905_Bulk seq IDs.xlsx`.
-- **Outputs**: `analysis/20250909-switch_lps.html` (volcano plot, PCA, sample table) and `analysis/20250909-DEGs.csv` (full DE table, used by Fig. 4C).
-- DE design: `~ genotype`, reference level `+/+` (so positive log2FC = up in `MC/+` / 4s2M).
-- Filtering: ≥10 counts in ≥5 samples, then median count > 10.
-- Sample `M2` is dropped as a QC outlier (sentinel `select(-M2)` in the notebook).
-
-### Figure 4C — GSEA against GO Biological Process
-```bash
-quarto render analysis/20251101-GSEA.qmd
-```
-- **Input**: `analysis/20250909-DEGs.csv` plus mouse GO:BP gene sets retrieved at render time via `msigdbr` (MSigDB collection `M5`, subcollection `BP`).
-- **Output**: `analysis/20251101-GSEA.html` — full ranked-pathway table and bar plot of normalized enrichment scores.
-- Method: `fgsea` with `minSize = 30`, `maxSize = 500`, FDR < 0.01, then `collapsePathways` to remove redundant gene-set overlap. Reproduces the 188 → 58 pathway counts cited in Methods §2.10.3.
-
-### Figure 5B–I — Luminex cytokines
-```bash
-quarto render analysis/20250912-switch_lps_bulk+cytoq.qmd
-```
-- **Inputs**: `Raw Data Johnson_MacLean Cytokine Results 2023 0612.csv`, `20250905_Bulk seq IDs.xlsx`.
-- **Output**: `analysis/20250912-switch_lps_bulk+cytoq.html` — within-genotype longitudinal tables, between-genotype comparisons stratified by condition, and a Benjamini–Hochberg-adjusted summary across the 15 (5 cytokines × 3 conditions) genotype tests.
 
 ## Upstream pipeline (not run locally)
 
@@ -74,7 +51,7 @@ R 4.5.x with the following packages (versions current at time of analysis):
 
 ## Caveats
 
-- **Sample `M2` is excluded from all differential-expression analyses.** as E2 expression is incompatible with a microglia-specific switch and is most likely a sample-tracking / genotyping error or off-target Cre recombination. 
+- **Sample `M2` is excluded from all differential-expression analyses** as E2 expression is incompatible with a microglia-specific switch and is most likely a genotyping error. 
 
 
 
