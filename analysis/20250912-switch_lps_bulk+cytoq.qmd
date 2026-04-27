@@ -1,0 +1,129 @@
+---
+title: "LPS Switch"
+date: today
+embed-resources: true
+execute:
+    echo: false
+    warning: false
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+
+library(tidyverse)
+library(DESeq2)          # Framework for RNA-seq differential expression
+library(patchwork)
+library(compareGroups)
+library(kableExtra)
+library(EnhancedVolcano)
+
+# Read the raw gene count data from a tab-separated value (TSV) file.
+counts <- read.table("~/Dropbox/SyncBriefcase/LAB/UK/APOE_switch/Georgia_bulk/nf-core_results/salmon_counts/salmon.merged.gene_counts.tsv", 
+                       header = TRUE, sep = "\t") |>  # Specify that the file has a header and is tab-delimited.
+  # Remove any duplicate rows based on the 'gene_name' column, keeping the first occurrence.
+  distinct(gene_name, .keep_all = T) |> 
+  # Set the 'gene_name' column as the row names of the data frame. DESeq2 requires gene identifiers as row names.
+  column_to_rownames("gene_name") |> 
+  # Remove the 'gene_id' and 'M2' columns, which are not needed for this analysis.
+  select(-gene_id, -M2) |> 
+  # Convert all remaining columns (which are sample counts) to integer format, as required by DESeq2.
+  mutate(across(everything(), as.integer))
+
+
+# Read the sample metadata from an Excel file into a data frame called 'md0'.
+md0 <- readxl::read_xlsx("~/Dropbox/SyncBriefcase/LAB/UK/APOE_switch/Georgia_bulk/20250905_Bulk seq IDs.xlsx")
+
+# Process the metadata.
+md <- md0 |>
+    # Set the 'altID' column as the row names for the metadata frame 'md'. 
+    # These row names should correspond to the sample names (column names) in the 'counts' data frame.
+    column_to_rownames("altID") 
+    
+# Reorder the rows of the metadata data frame ('md') to match the column order of the counts data frame ('counts').
+# This is a CRITICAL step to ensure that the sample information in 'md' correctly aligns with the sample data in 'counts'.
+md <- md[colnames(counts),] 
+
+# identical(rownames(md),names(counts))
+
+
+######################################################
+### cytokine data ####################################
+######################################################
+
+ck0 <- read_csv("~/Dropbox/SyncBriefcase/LAB/UK/APOE_switch/Georgia_bulk/Raw Data Johnson_MacLean Cytokine Results 2023 0612.csv")
+
+ck <- separate_wider_delim(ck0, cols = "Name", names = c("sample","tissue","prepost","experiment"), 
+                           delim = " ",
+                           too_few = "align_start") |> 
+    mutate(experiment = ifelse(prepost == "LPS", "LPS", experiment ),
+           prepost = ifelse (prepost == "LPS", "Brain", prepost)) |> 
+    filter( experiment == "LPS") |> 
+    left_join(md, by = c ("sample" = "mouseID")) |> 
+    filter(!is.na(genotype)) |> 
+    mutate(across(IFN:IL6, \(x) parse_number(x)),
+           prepost = factor (prepost, levels = c("(Pre)","(Post)","Brain")))
+    
+ck_wider <- ck |> 
+    select(-tissue) |> 
+    pivot_wider(names_from = prepost, values_from = c("IFN","IL1b","IL6","IL10","TNF"))
+# write_csv(ck_wider, file = "/Users/arbones/Dropbox/SyncBriefcase/LAB/UK/APOE_switch/Georgia_bulk/20250917-cytokine_clean.csv")
+```
+
+### Within-group cytokine changes across conditions
+
+For each genotype separately, cytokine concentrations are shown as medians with interquartile ranges. Pre- vs post-LPS plasma values and brain values were compared using non-parametric tests (p.overall).
+
+```{r}
+#| column: page
+
+c1 <- compareGroups(prepost ~ IFN + IL1b + IL6 + IL10 + TNF, ck, method = 2)
+t1 <- createTable(c1)
+
+s1 <- strataTable(t1, "genotype")
+
+export2md(s1, caption = "" )
+```
+As expected, there is a strong induction of all cytokines in plasma post-LPS and measurable levels in the brain. 
+---
+
+### Between-genotype comparisons
+
+Cytokine values for +/+ and MC/+ are directly compared at each condition (pre, post, brain).
+
+```{r}
+#| column: page
+
+c1 <- compareGroups(genotype ~ IFN + IL1b + IL6 + IL10 + TNF, ck, method = 2)
+t1 <- createTable(c1)
+
+s1 <- strataTable(t1, "prepost")
+
+export2md(s1, caption = "" )
+```
+
+### Multiple-testing correction
+
+To account for the 15 tests performed (5 cytokines × 3 conditions), the same Mann–Whitney genotype comparisons were re-computed and adjusted with the Benjamini–Hochberg procedure across all features.
+
+```{r}
+ck_padj <- ck |>
+    mutate(condition = fct_recode(prepost,
+                                  "Pre"  = "(Pre)",
+                                  "Post" = "(Post)",
+                                  "Brain" = "Brain")) |>
+    pivot_longer(c(IFN, IL1b, IL6, IL10, TNF),
+                 names_to = "cytokine", values_to = "value") |>
+    group_by(condition, cytokine) |>
+    summarise(p = wilcox.test(value ~ genotype, exact = FALSE)$p.value,
+              .groups = "drop") |>
+    mutate(p.BH = p.adjust(p, method = "BH")) |>
+    pivot_wider(id_cols = cytokine,
+                names_from = condition,
+                values_from = c(p, p.BH))
+
+kbl(ck_padj, digits = 3,
+    caption = "Mann–Whitney p-values: raw and BH-adjusted across the 15 genotype × condition tests") |>
+    kable_styling("striped", full_width = FALSE)
+```
+
+After Benjamini–Hochberg correction, no genotype comparison reaches significance, consistent with the manuscript's reported finding of no cytokine differences between 4s2 and 4s2M mice following LPS.

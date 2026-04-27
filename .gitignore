@@ -1,0 +1,46 @@
+# Internal — not for public reviewers
+CLAUDE.md
+
+# OS / IDE / autosaves
+.DS_Store
+.Rhistory
+.Rproj.user/
+.Rprofile
+*.tmp
+*.eml
+\##*
+
+# Quarto cache / freeze artifacts
+*_files/
+*.knit.md
+*.quarto_ipynb
+.quarto/
+_freeze/
+
+# Raw sequencing — deposited to GEO, not GitHub
+fastq/M_*/
+fastq/NS_*/
+fastq/check_MD5.sh
+
+# Whole sub-trees not used by any manuscript figure
+nf-core_results_humanReferenceGenome/
+deconvolution/
+pubs/
+
+# Mouse-genome nf-core auxiliary outputs (multiqc, deseq2_qc, pipeline_info)
+# Keep only the salmon gene_counts.tsv that DESeq2 reads.
+nf-core_results/multiqc/
+nf-core_results/deseq2_qc/
+nf-core_results/pipeline_info/
+nf-core_results/salmon_counts/*
+!nf-core_results/salmon_counts/salmon.merged.gene_counts.tsv
+
+# Notebooks for analyses not reported in the manuscript
+analysis/20250909-transcripts_APOE.*
+analysis/20250917-deconvolution.*
+
+# Excel duplicate of the cytokine CSV that IS tracked
+Raw Data Johnson_MacLean Cytokine Results 2023 0612.xlsx
+
+# Cytokine notebook intermediate (only consumer was the excluded deconvolution notebook)
+20250917-cytokine_clean.csv

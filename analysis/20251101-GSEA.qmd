@@ -1,0 +1,202 @@
+---
+title: "Gene Enrichment Analysis"
+date: today
+embed-resources: true
+execute: 
+  echo: false
+  warning: false
+  messages: false
+format: html
+---
+
+```{r}
+# fgsea: Fast Gene Set Enrichment Analysis
+# https://bioconductor.org/packages/release/bioc/vignettes/fgsea/inst/doc/fgsea-tutorial.html
+library(fgsea)
+
+# msigdbr: Access to MSigDB gene sets for multiple species
+library(msigdbr)
+
+# Data manipulation and visualization
+library(tidyverse)
+library(kableExtra)
+```
+
+### Gene Set Enrichment Analysis (GSEA)
+
+Gene Set Enrichment Analysis (GSEA) was performed to identify biological pathways systematically altered by APOE2 overexpression in glial cells. This method evaluates whether genes within predefined gene sets are randomly distributed throughout a ranked gene list or concentrated at the extremes, indicating coordinated regulation of biological processes. All genes from the differential expression analysis were ranked by `log2 fold change` and tested against Gene Ontology Biological Process (GO:BP) gene sets from `MSigDB` for Mus musculus (minimum 30 genes, maximum 500 genes per pathway).
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+
+#################################################################
+### Mouse Gene Sets from MSigDB #################################
+### https://www.gsea-msigdb.org/gsea/msigdb/mouse/genesets.jsp ##
+#################################################################
+
+set.seed(42)  # Set seed for reproducibility
+
+# Load complete differential expression results (all genes, not just significant)
+brain <- read_csv("/Users/arbones/Dropbox/SyncBriefcase/LAB/UK/APOE_switch/Georgia_bulk/analysis/20250909-DEGs.csv") |> 
+    rename(gene = "...1")
+
+# Create ranked gene list based on log2 fold change
+# GSEA uses the ranking of ALL genes, not just significant ones
+gene_ranks <- brain$log2FoldChange
+names(gene_ranks) <- brain$gene
+gene_ranks <- sort(gene_ranks, decreasing = TRUE)  # Sort high to low
+
+# Retrieve Gene Ontology Biological Process gene sets from MSigDB
+# MSigDB Collection M5 = ontology gene sets
+# Subcollection BP = Biological Process
+gene_sets <- msigdbr(
+  species = "Mus musculus",      # Mouse
+  db_species = "MM",              # Mouse species code
+  collection = "M5",              # GO gene sets
+  subcollection = "BP"            # Biological Process ontology
+)
+
+# Convert to list format required by fgsea
+# Each element = one gene set (pathway) with its member genes
+gene_sets_list <- split(gene_sets$gene_symbol, gene_sets$gs_name)
+
+# Run Fast Gene Set Enrichment Analysis
+# Tests whether genes in each pathway are randomly distributed in the ranked list
+# or concentrated at the top (upregulated) or bottom (downregulated)
+fgsea_results <- fgsea(
+  pathways = gene_sets_list,      # Gene sets to test
+  stats = gene_ranks,             # Ranked gene list
+  eps = 0.0,                      # Precision for p-value estimation (0 = exact)
+  minSize = 30,                   # Minimum genes per pathway
+  maxSize = 500                   # Maximum genes per pathway
+)
+
+
+
+# Filter and format results
+gsea <- fgsea_results |> 
+  arrange(padj) |>                      # Sort by adjusted p-value
+  filter(padj < 0.01) |>                # Keep only significant pathways
+  arrange(desc(NES))                     # Sort by normalized enrichment score
+
+
+
+# Display results table
+# kbl(gsea |> select(pathway, NES, padj, size),
+#  digits = 3) |> 
+#  kable_styling(full_width = FALSE, "striped")
+```
+
+> GSEA of brain tissue revealed `r nrow(gsea)` significantly enriched pathways (>30 genes /pathway, FDR < 0.01)
+
+
+
+
+#### Reducing Redundant Pathways with `collapsePathways`
+
+To reduce redundancy arising from overlapping gene membership between related pathways, the `collapsePathways` function from the `fgsea` package was applied, consolidating the results to the most significantly enriched pathway from each cluster.
+
+```{r}
+
+# Subset gene_sets_list to only include significant pathways
+gene_sets_significant <- gene_sets_list[gsea$pathway]
+
+
+# CollapsePathways
+# This identifies redundant pathways based on leading edge overlap
+collapsed <- collapsePathways(
+  fgseaRes = fgsea_results |> filter(padj<0.01),     # Your fgsea results (filtered)
+  pathways = gene_sets_significant,     # Gene sets (filtered to significant)
+  pval.threshold = 0.01,               # P-value threshold for significance
+  stats = gene_ranks                    # Same ranked gene list used in fgsea
+)
+
+# Extract the main (representative) pathways
+main_pathways <- collapsed$mainPathways
+
+# Step 5: Filter your results to keep only main pathways
+gsea_collapsed <- fgsea_results |> 
+  filter(padj<0.01) |>
+  filter(pathway %in% main_pathways) |>
+  arrange(desc(NES)) |> 
+  mutate(pretty_names = str_remove_all(pathway, "GOBP_"),
+         pretty_names = str_replace_all(pretty_names, "_", " "))
+
+# View how many pathways were collapsed
+cat("Original significant pathways:", nrow(gsea), "\n")
+cat("After collapsing:", nrow(gsea_collapsed), "\n")
+
+
+
+```
+
+Results are reported as Normalized Enrichment Score (NES, indicating direction and magnitude of enrichment), adjusted p-value (padj, statistical significance after FDR correction), and size (number of genes in the pathway present in the dataset).
+```{r}
+# Display results table
+kbl(gsea_collapsed |> select(pretty_names, NES, padj, size),
+  digits = 3) |>
+  kable_styling(full_width = FALSE, "striped")
+```
+
+#### Key Enriched Pathways
+
+The most prominently upregulated pathways were associated with protein synthesis and mitochondrial energy metabolism. Immune response pathways also showed significant upregulation. In contrast, pathways involved in neuronal function and synaptic regulation were predominantly downregulated. 
+```{r}
+#| fig-height: 10
+ggplot(gsea_collapsed, aes(x = reorder(pretty_names, NES), y = NES)) +
+  geom_col(aes(fill = NES > 0),alpha = 0.9) +
+  coord_flip() +
+  labs(
+    title = "GSEA",
+    x = "GO: Biological Process Pathways",
+    y = "Normalized Enrichment Score (NES)") +
+  theme_minimal() +
+  theme(legend.position = "none",
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "grey98"))
+```
+
+```{r}
+#| fig-height: 4
+plotEnrichment(gene_sets_list[["GOBP_TRANSLATION_AT_SYNAPSE"]], 
+               gene_ranks) +
+  labs(title = "GO: BP Traslation at Synapse",
+       subtitle = "NES = 3.12, padj <0.001")
+```
+_All overexpressed genes in this pathway are ribosomal_
+
+```{r}
+cat(gene_sets_list[["GOBP_TRANSLATION_AT_SYNAPSE"]], sep = ", ")
+```
+---
+
+```{r}
+#| fig-height: 4
+plotEnrichment(gene_sets_list[["GOBP_PROTON_MOTIVE_FORCE_DRIVEN_ATP_SYNTHESIS"]], 
+               gene_ranks) +
+  labs(title = "GO:BP Proton Motive Force Driven ATP Synthesis",
+       subtitle = "NES = 2.79, padj = <0.001")
+```
+_All overexpressed genes in this pathway are mitochondrial_
+
+```{r}
+cat(gene_sets_list[["GOBP_PROTON_MOTIVE_FORCE_DRIVEN_ATP_SYNTHESIS"]], sep = ", ")
+```
+---
+
+```{r}
+#| fig-height: 4
+plotEnrichment(gene_sets_list[["GOBP_ANTIGEN_PROCESSING_AND_PRESENTATION_OF_PEPTIDE_ANTIGEN"]], 
+               gene_ranks) +
+  labs(title = "GO:BP Antigen Processing and presentation of peptide antigen",
+       subtitle = "NES = 2.39, padj = <0.001")
+```
+
+
+```{r}
+cat(gene_sets_list[["GOBP_ANTIGEN_PROCESSING_AND_PRESENTATION_OF_PEPTIDE_ANTIGEN"]], sep = ", ")
+```
+---
+
