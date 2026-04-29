@@ -117,12 +117,13 @@ collapsed <- collapsePathways(
 main_pathways <- collapsed$mainPathways
 
 # Step 5: Filter your results to keep only main pathways
-gsea_collapsed <- fgsea_results |> 
+gsea_collapsed <- fgsea_results |>
   filter(padj<0.01) |>
   filter(pathway %in% main_pathways) |>
-  arrange(desc(NES)) |> 
+  arrange(desc(NES)) |>
   mutate(pretty_names = str_remove_all(pathway, "GOBP_"),
-         pretty_names = str_replace_all(pretty_names, "_", " "))
+         pretty_names = str_replace_all(pretty_names, "_", " "),
+         leadingEdge_n = lengths(leadingEdge))
 
 # View how many pathways were collapsed
 cat("Original significant pathways:", nrow(gsea), "\n")
@@ -132,22 +133,28 @@ cat("After collapsing:", nrow(gsea_collapsed), "\n")
 
 ```
 
-Results are reported as Normalized Enrichment Score (NES, indicating direction and magnitude of enrichment), adjusted p-value (padj, statistical significance after FDR correction), and size (number of genes in the pathway present in the dataset).
+Results are reported as Normalized Enrichment Score (NES, indicating direction and magnitude of enrichment), adjusted p-value (padj, statistical significance after FDR correction), size (number of genes in the pathway present in the dataset), and the leading-edge gene count (the subset of pathway genes driving the enrichment signal — used here as a per-pathway effect-size measure).
 ```{r}
 # Display results table
-kbl(gsea_collapsed |> select(pretty_names, NES, padj, size),
-  digits = 3) |>
+kbl(gsea_collapsed |>
+      select(pretty_names, NES, padj, size, leadingEdge_n),
+    digits = 3,
+    col.names = c("Pathway", "NES", "padj", "Size", "Leading-edge genes (n)")) |>
   kable_styling(full_width = FALSE, "striped")
 ```
 
 #### Key Enriched Pathways
 
-The most prominently upregulated pathways were associated with protein synthesis and mitochondrial energy metabolism. Immune response pathways also showed significant upregulation. In contrast, pathways involved in neuronal function and synaptic regulation were predominantly downregulated. 
+The most prominently upregulated pathways were associated with protein synthesis and mitochondrial energy metabolism. Immune response pathways also showed significant upregulation. In contrast, pathways involved in neuronal function and synaptic regulation were predominantly downregulated. The number at the tip of each bar indicates the leading-edge gene count — the genes within each pathway that contribute to the enrichment signal — included as a per-pathway measure of effect size.
 ```{r}
 #| fig-height: 10
 ggplot(gsea_collapsed, aes(x = reorder(pretty_names, NES), y = NES)) +
-  geom_col(aes(fill = NES > 0),alpha = 0.9) +
+  geom_col(aes(fill = NES > 0), alpha = 0.9) +
+  geom_text(aes(label = leadingEdge_n,
+                hjust = ifelse(NES > 0, -0.25, 1.25)),
+            size = 3) +
   coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0.08, 0.08))) +
   labs(
     title = "GSEA",
     x = "GO: Biological Process Pathways",
