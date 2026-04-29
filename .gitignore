@@ -39,8 +39,8 @@ nf-core_results/salmon_counts/*
 analysis/20250909-transcripts_APOE.*
 analysis/20250917-deconvolution.*
 
-# Excel duplicate of the cytokine CSV that IS tracked
+# Cytokine data and notebooks — not requested by reviewers, kept local only
+Raw Data Johnson_MacLean Cytokine Results 2023 0612.csv
 Raw Data Johnson_MacLean Cytokine Results 2023 0612.xlsx
-
-# Cytokine notebook intermediate (only consumer was the excluded deconvolution notebook)
 20250917-cytokine_clean.csv
+analysis/20250912-switch_lps_bulk+cytoq.*
