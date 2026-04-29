@@ -151,10 +151,10 @@ The most prominently upregulated pathways were associated with protein synthesis
 ggplot(gsea_collapsed, aes(x = reorder(pretty_names, NES), y = NES)) +
   geom_col(aes(fill = NES > 0), alpha = 0.9) +
   geom_text(aes(label = leadingEdge_n,
-                hjust = ifelse(NES > 0, -0.25, 1.25)),
+                hjust = ifelse(NES > 0, -0.2, 1.2)),
             size = 3) +
-  coord_flip() +
-  scale_y_continuous(expand = expansion(mult = c(0.08, 0.08))) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(expand = expansion(mult = c(0.18, 0.12))) +
   labs(
     title = "GSEA",
     x = "GO: Biological Process Pathways",
@@ -162,7 +162,8 @@ ggplot(gsea_collapsed, aes(x = reorder(pretty_names, NES), y = NES)) +
   theme_minimal() +
   theme(legend.position = "none",
     panel.grid.minor = element_blank(),
-    panel.grid.major = element_line(color = "grey98"))
+    panel.grid.major = element_line(color = "grey98"),
+    plot.margin = margin(5, 15, 5, 5))
 ```
 
 ```{r}
