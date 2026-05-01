@@ -53,25 +53,41 @@ source("../../GN_HFD_Metabolomics_ANOVA.R")
 ```
 
 The repository ships both the input CSVs and the full output tables, so
-reviewers can either inspect the results directly or rerun the scripts to
-verify them.
+the results can either be inspected directly or reproduced by rerunning the
+scripts.
 
-**Multiple-testing correction.** Both the per-feature ANOVA term-wise
-p-values (`p_adj_BH`) and the metabolomics post hoc tables
-(`p_adj_BH_global`) use Benjamini–Hochberg applied **globally across all
-features within the relevant family**. The manuscript text reports the
-within-feature BH for the lipid post hoc tests (`p_adj`), which BH-adjusts
-the pairwise contrasts within each lipid only; the corresponding
-`p_adj_BH_global` column is included alongside in every lipid emmeans
-output table so reviewers can apply the same family-wide correction used
-for metabolomics.
+**Multiple-testing correction.** Every table uses Benjamini–Hochberg, but
+the *family* over which BH is applied differs by table. Each output column
+is named so the family is unambiguous:
+
+- **Per-feature 2-way ANOVA tables** (`per_lipid_2way_ANOVA.csv`,
+  `per_subclass_2way_ANOVA.csv`, `per_metabolite_2way_ANOVA.csv`).
+  Column `p_adj_BH` — BH applied across **all features** within each
+  ANOVA term (Sex, Genotype, Sex × Genotype).
+- **Lipidomics emmeans post hoc tables** (`per_lipid_emmeans_*`,
+  `per_subclass_emmeans_*`). Two adjusted columns are reported side by
+  side:
+  - `p_adj` — BH applied **within each individual lipid**, across the
+    pairwise contrasts of that single feature (the value the manuscript
+    text quotes).
+  - `p_adj_BH_global` — BH applied **across every feature × every
+    pairwise contrast** within the post hoc family (ALL_pairs,
+    Sex_within_Genotype, or Genotype_within_Sex). This matches the
+    correction used for metabolomics and is the more conservative test.
+- **Metabolomics emmeans post hoc tables**
+  (`per_metabolite_emmeans_*_GLOBALBH.csv`). Column `p_adj_BH_global`
+  only — same family-wide BH as the lipid `p_adj_BH_global` column.
+
+Both omics tables therefore expose the same family-wide correction
+(`p_adj_BH_global`), and the lipid tables additionally retain the
+within-feature `p_adj` for traceability with the manuscript text.
 
 
 ## Upstream pipeline (not run locally)
 
 FASTQs were processed with [`nf-core/rnaseq` v3.19.0](https://nf-co.re/rnaseq/3.19.0) on the University of Kentucky Morgan HPC cluster, executed by [`Nextflow` v24.10.4](https://www.nextflow.io) and containerized with Singularity. Reads were aligned to the *Mus musculus* GRCm39 primary assembly (Ensembl release 114) using STAR, and transcript abundance was quantified with Salmon. The exact submission script is `fastq/20250730-nextflow_rnaseq.sh`, and the sample sheet handed to the pipeline is `20250907-sample_sheet.csv` (built by `20250907-sample_sheet_script.R`).
 
-Reviewers can re-run the full upstream pipeline by retrieving the FASTQs from GEO (accession above) and invoking the submission script after adjusting the cluster-specific paths.
+The full upstream pipeline can be re-run by retrieving the FASTQs from GEO (accession above) and invoking the submission script after adjusting the cluster-specific paths.
 
 ## Software environment
 
