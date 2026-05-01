@@ -1,0 +1,9 @@
+setting,value
+ZerosAsNA,TRUE
+DroppedSampleColumns_count,0
+WeightNorm,TRUE
+WeightAnchor,median
+AnchorValue,21.4
+Log2_no_pseudocount,TRUE
+ANOVA_TYPE,2
+PostHoc_Adjustment,BH across all post-hoc tests per family

@@ -1,0 +1,20 @@
+Sample ID,Mouse ID,Genotype,Sex,Tissue Weight
+M1,MAD_134,4s2M,Female,22.5
+M2,MAD_139,4s2M,Male,19.9
+M3,MAD_154,4s2-,Male,19
+M4,MAD_163,4s2M,Female,19.7
+M5,MAD_179,4s2M,Male,20.7
+M6,MAD_185,4s2-,Female,20
+M7,MAD_37,4s2M,Female,21.5
+M8,MAD_39,4s2-,Female,21.7
+M9,MAD_58,4s2-,Female,21.4
+M10,MAD_59,4s2M,Female,22.3
+M11,MAD_61,4s2M,Female,19.7
+M12,MAD_75,4s2M,Male,20.6
+M13,MAD_81,4s2M,Female,19
+S14,SAD_154,4s2-,Male,24.4
+S15,SAD_264,4s2-,Male,21.9
+S16,SAD_282,4s2-,Female,22.6
+S18,SAD_293,4s2-,Male,21
+S19,SAD_302,4s2-,Female,22.5
+S20,SAD_312,4s2-,Female,22
