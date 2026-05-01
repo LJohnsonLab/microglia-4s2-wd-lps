@@ -56,32 +56,6 @@ The repository ships both the input CSVs and the full output tables, so
 the results can either be inspected directly or reproduced by rerunning the
 scripts.
 
-**Multiple-testing correction.** Every table uses Benjamini–Hochberg, but
-the *family* over which BH is applied differs by table. Each output column
-is named so the family is unambiguous:
-
-- **Per-feature 2-way ANOVA tables** (`per_lipid_2way_ANOVA.csv`,
-  `per_subclass_2way_ANOVA.csv`, `per_metabolite_2way_ANOVA.csv`).
-  Column `p_adj_BH` — BH applied across **all features** within each
-  ANOVA term (Sex, Genotype, Sex × Genotype).
-- **Lipidomics emmeans post hoc tables** (`per_lipid_emmeans_*`,
-  `per_subclass_emmeans_*`). Two adjusted columns are reported side by
-  side:
-  - `p_adj` — BH applied **within each individual lipid**, across the
-    pairwise contrasts of that single feature (the value the manuscript
-    text quotes).
-  - `p_adj_BH_global` — BH applied **across every feature × every
-    pairwise contrast** within the post hoc family (ALL_pairs,
-    Sex_within_Genotype, or Genotype_within_Sex). This matches the
-    correction used for metabolomics and is the more conservative test.
-- **Metabolomics emmeans post hoc tables**
-  (`per_metabolite_emmeans_*_GLOBALBH.csv`). Column `p_adj_BH_global`
-  only — same family-wide BH as the lipid `p_adj_BH_global` column.
-
-Both omics tables therefore expose the same family-wide correction
-(`p_adj_BH_global`), and the lipid tables additionally retain the
-within-feature `p_adj` for traceability with the manuscript text.
-
 
 ## Upstream pipeline (not run locally)
 

@@ -412,24 +412,6 @@ emm_lip_genW <- emm_lip_genW %>%
   clean_emm("Lipids") %>%
   add_direction("label1", "label2", "estimate_log2")
 
-# Add a global BH adjustment across all features within each post hoc
-# family, alongside the within-feature p_adj. Mirrors the metabolomics
-# pipeline (TwoWay_Metabolites_SexGen_outputs_v2_globalBH/) so reviewers
-# can compare lipidomics and metabolomics significance under a common,
-# more conservative correction.
-if (nrow(emm_lip_all)) {
-  emm_lip_all <- emm_lip_all %>%
-    mutate(p_adj_BH_global = p.adjust(raw_p, method = "BH"))
-}
-if (nrow(emm_lip_sexW)) {
-  emm_lip_sexW <- emm_lip_sexW %>%
-    mutate(p_adj_BH_global = p.adjust(raw_p, method = "BH"))
-}
-if (nrow(emm_lip_genW)) {
-  emm_lip_genW <- emm_lip_genW %>%
-    mutate(p_adj_BH_global = p.adjust(raw_p, method = "BH"))
-}
-
 write_csv(
   emm_lip_all,
   file.path(OUTDIR, "per_lipid_emmeans_ALL_pairs_SexxGenotype.csv")
@@ -490,19 +472,6 @@ emm_sc_genW <- emm_sc_genW %>%
   clean_emm("Subclass") %>%
   add_direction("label1", "label2", "estimate_log2")
 
-if (nrow(emm_sc_all)) {
-  emm_sc_all <- emm_sc_all %>%
-    mutate(p_adj_BH_global = p.adjust(raw_p, method = "BH"))
-}
-if (nrow(emm_sc_sexW)) {
-  emm_sc_sexW <- emm_sc_sexW %>%
-    mutate(p_adj_BH_global = p.adjust(raw_p, method = "BH"))
-}
-if (nrow(emm_sc_genW)) {
-  emm_sc_genW <- emm_sc_genW %>%
-    mutate(p_adj_BH_global = p.adjust(raw_p, method = "BH"))
-}
-
 write_csv(
   emm_sc_all,
   file.path(OUTDIR, "per_subclass_emmeans_ALL_pairs_SexxGenotype.csv")
@@ -531,8 +500,7 @@ write_csv(
       "Log2_no_pseudocount",
       "SubclassSumLinearThenLog2",
       "ANOVA_TYPE",
-      "emmeans_adjust",
-      "PostHoc_GlobalBH_column"
+      "emmeans_adjust"
     ),
     value = c(
       TRUE,
@@ -543,8 +511,7 @@ write_csv(
       TRUE,
       TRUE,
       ANOVA_TYPE,
-      EMM_ADJ,
-      "p_adj_BH_global = BH across all features within each post hoc family"
+      EMM_ADJ
     )
   ),
   file.path(OUTDIR, "Settings.csv")
