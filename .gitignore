@@ -44,3 +44,8 @@ Raw Data Johnson_MacLean Cytokine Results 2023 0612.csv
 Raw Data Johnson_MacLean Cytokine Results 2023 0612.xlsx
 20250917-cytokine_clean.csv
 analysis/20250912-switch_lps_bulk+cytoq.*
+
+# Lipidomics & metabolomics — original Isaiah-shared bundle stays local;
+# only the cleaned duplicate ships. Internal notes inside the duplicate are local-only too.
+lipidomics-metabolomics/
+lipidomics-metabolomics-public/README.md
