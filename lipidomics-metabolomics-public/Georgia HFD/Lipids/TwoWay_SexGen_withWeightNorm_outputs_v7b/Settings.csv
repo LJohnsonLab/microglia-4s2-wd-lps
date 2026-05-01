@@ -1,0 +1,11 @@
+setting,value
+ZerosAsNA,TRUE
+DroppedSamplesCount,49
+WeightNorm,TRUE
+WeightAnchor,median
+AnchorValue,5
+Log2_no_pseudocount,TRUE
+SubclassSumLinearThenLog2,TRUE
+ANOVA_TYPE,2
+emmeans_adjust,BH
+PostHoc_GlobalBH_column,p_adj_BH_global = BH across all features within each post hoc family
