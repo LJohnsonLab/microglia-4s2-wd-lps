@@ -6,14 +6,14 @@ library(purrr)
 library(readr)
 library(readxl)
 
-input_file <- "Correlations_Lipidomics_Histopath.xlsx"
-output_dir <- "."
+input_file <- "./lipidomics-correlations/Correlations_Lipidomics_Histopath.xlsx"
+output_dir <- "./lipidomics-correlations/"
 
 df <- read_excel(input_file)
 
 prepare_numeric_df <- function(data) {
   data |>
-    select(-Genotype) |>
+    select(-Genotype,-MouseID) |>
     mutate(across(where(is.character), readr::parse_number)) |>
     select(where(\(column) is.numeric(column) && !all(is.na(column))))
 }
