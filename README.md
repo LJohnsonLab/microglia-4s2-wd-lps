@@ -12,6 +12,7 @@ This repository contains the code and processed data needed to reproduce the pan
 - **Figure 4B** — Volcano plot of differentially expressed genes (4s2M vs 4s2 LPS, whole brain).
 - **Figure 4C** — GSEA bar plot (GO Biological Process, collapsed pathways).
 - **Figures 1–3 (HFD cohort) — lipidomics & metabolomics** — full per-feature two-way Sex × Genotype ANOVA tables and emmeans post hoc contrasts, in `lipidomics-metabolomics-public/`.
+- **Lipidomics–histopathology correlations (HFD cohort)** — correlation-matrix plots relating lipid measurements to histopathology readouts, overall and split by genotype (4s2M, 4s2-), in `lipidomics-correlations/`.
 
 Other figures in the manuscript (Fig 5 cytokines, Fig 6, supplementary figures) come from immunofluorescence, qPCR, and Luminex analyses performed outside this codebase. See *Data availability* below for where to find them.
 
@@ -24,6 +25,7 @@ Other figures in the manuscript (Fig 5 cytokines, Fig 6, supplementary figures) 
 | Sample metadata (`mouseID` ↔ `altID` ↔ `genotype`) | `20250905_Bulk seq IDs.xlsx` |
 | Differential expression result table | `analysis/20250909-DEGs.csv` |
 | Lipidomics & metabolomics — scripts, raw measurements, and full ANOVA / emmeans output tables (HFD cohort, Figs 1–3) | `lipidomics-metabolomics-public/` |
+| Lipidomics–histopathology correlations — script, input table, and rendered correlation plots (PDF / SVG) | `lipidomics-correlations/` |
 | Luminex cytokine, immunofluorescence / HALO, and qPCR data (Figs 5, 6) | Source-data tables of the published article; statistics performed in GraphPad Prism (see Methods). |
 
 ## Reproducing the figures
@@ -55,6 +57,23 @@ source("../../GN_HFD_Metabolomics_ANOVA.R")
 The repository ships both the input CSVs and the full output tables, so
 the results can either be inspected directly or reproduced by rerunning the
 scripts.
+
+### Lipidomics–histopathology correlations (HFD cohort)
+
+A single self-contained R script reads the combined lipidomics and
+histopathology table and writes correlation-matrix plots as
+both PDF and SVG: one overall plot plus one per genotype (4s2M, 4s2-).
+
+```r
+setwd("lipidomics-correlations")
+source("gn_lipidomics_corrplot_v3.R")
+# → lipidomics_histopath_correlation_plot_v2.{pdf,svg}
+# → 4s2m_lipidomics_histopath_correlation_plot_v2.{pdf,svg}
+# → 4s2-_lipidomics_histopath_correlation_plot_v2.{pdf,svg}
+```
+
+The input table (`Correlations_Lipidomics_Histopath.xlsx`) and the rendered
+plots are both shipped in the repository.
 
 
 ## Upstream pipeline (not run locally)
